@@ -9,11 +9,36 @@ This project demonstrates real multi-node Distributed Data Parallel (DDP) traini
 * Kubernetes Jobs
 * Headless Service for rendezvous
 * Minikube (local cluster)
+* **AWS EKS (managed Kubernetes in the cloud)**
 
 Two separate Kubernetes pods run one process each, synchronize gradients using AllReduce, and train a CNN on MNIST.
 
-This simulates how distributed training works in production ML platforms.
+The system was deployed and validated in two environments:
 
+### 1. Local Kubernetes (Minikube)
+
+Used for rapid development and debugging.
+
+### 2. AWS EKS (Production-Style Deployment)
+
+The same Docker image was pushed to Amazon ECR and deployed to a managed EKS cluster with:
+
+* 2 EC2 worker nodes
+* Kubernetes Jobs for master and worker
+* Distributed training across separate machines
+* Gradient synchronization over the cluster network
+* Model checkpoint saved after training
+
+This simulates how distributed training works in real production ML platforms:
+
+Local code → Docker → ECR → EKS → Kubernetes Jobs → Distributed Training
+
+The EKS deployment verifies:
+
+* Multi-node execution (pods scheduled on different EC2 instances)
+* Proper DDP initialization (rank 0 / rank 1)
+* Cross-node gradient synchronization
+* Cloud-based distributed ML infrastructure management
 ---
 # Architecture
 
