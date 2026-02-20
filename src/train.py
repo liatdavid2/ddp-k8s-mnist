@@ -9,6 +9,12 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data import DataLoader, DistributedSampler
 from torchvision import datasets, transforms
 
+import os
+print("TRAIN STARTED", flush=True)
+print("RANK:", os.environ.get("RANK"), flush=True)
+print("WORLD_SIZE:", os.environ.get("WORLD_SIZE"), flush=True)
+print("MASTER_ADDR:", os.environ.get("MASTER_ADDR"), flush=True)
+
 
 @dataclass
 class Config:

@@ -25,7 +25,7 @@ spec:
             - "--rdzv_backend=c10d"
             - "--rdzv_endpoint=ddp-master-svc:29500"
             - "--rdzv_id=mnist-ddp"
-            - "/app/src/train.py"
+            - "--master_addr=ddp-master-svc"
+            - "--master_port=29500"
 
-          ports:
-            - containerPort: 29500
+            - "/app/src/train.py"
