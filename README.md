@@ -14,42 +14,9 @@ Two separate Kubernetes pods run one process each, synchronize gradients using A
 
 This simulates how distributed training works in production ML platforms.
 
-
-# Architecture Overview
-
-Developer Laptop
-      │
-      │ kubectl
-      ▼
-Kubernetes Cluster
-      │
-      ▼
-Training Pod (Container)
-      │
-      ▼
-PyTorch Training Script
-      │
-      ▼
-Model Checkpoint Saved (/outputs)
-
-
-Distributed Training Architecture (DDP):
-
-              Kubernetes Cluster
-
-        ┌─────────────────────┐
-        │   ddp-master Pod    │  rank 0
-        │   PyTorch process   │
-        └─────────┬───────────┘
-                  │ gradient synchronization
-        ┌─────────▼───────────┐
-        │   ddp-worker Pod    │  rank 1
-        │   PyTorch process   │
-        └─────────────────────┘
-
-
+-------
 # Project Structure
-
+```
 ddp-k8s-mnist/
 
 src/
@@ -68,7 +35,7 @@ requirements.txt
 .gitignore
 .dockerignore
 README.md
-
+```
 ---
 
 # Architecture
