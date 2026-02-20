@@ -14,8 +14,9 @@ COPY docker/requirements.txt /app/requirements.txt
 
 # Install CPU wheels for torch/torchvision
 RUN pip install --no-cache-dir --upgrade pip \
- && pip install --no-cache-dir -r /app/requirements.txt --index-url https://download.pytorch.org/whl/cpu
-
+ && pip install --no-cache-dir -r /app/requirements.txt \
+    --extra-index-url https://download.pytorch.org/whl/cpu
+    
 COPY src /app/src
 
 # Default command can be overridden by k8s args
