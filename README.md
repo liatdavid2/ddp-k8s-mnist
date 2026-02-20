@@ -14,30 +14,7 @@ Two separate Kubernetes pods run one process each, synchronize gradients using A
 
 This simulates how distributed training works in production ML platforms.
 
--------
-# Project Structure
-```
-ddp-k8s-mnist/
-
-src/
-    train.py                PyTorch training script with DDP support
-
-docker/
-    Dockerfile              Docker image definition for training
-
-k8s/
-    ddp-master.yaml         Kubernetes Job for master process
-    ddp-worker.yaml         Kubernetes Job for worker process
-
-outputs/                    Saved model checkpoints
-
-requirements.txt
-.gitignore
-.dockerignore
-README.md
-```
 ---
-
 # Architecture
 
 ```
@@ -66,6 +43,32 @@ Both pods compute gradients independently.
 PyTorch performs an AllReduce operation to synchronize gradients across pods.
 Each pod updates identical model weights.
 
+
+
+-------
+## Project Structure
+
+```text
+ddp-k8s-mnist/
+│
+├── docker/
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── .dockerignore
+│
+├── k8s/
+│   ├── ddp-master-job.yaml
+│   ├── ddp-worker-job.yaml
+│   └── headless-svc.yaml
+│
+├── src/
+│   └── train.py
+│
+├── .gitignore
+├── README.md
+├── Commands
+└── kubectl
+```
 ---
 
 # What Was Implemented
