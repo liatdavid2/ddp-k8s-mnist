@@ -12,8 +12,8 @@ spec:
       restartPolicy: Never
       containers:
         - name: master
-          image: ddp-mnist:0.1
-          imagePullPolicy: Never
+          image: 127393435473.dkr.ecr.us-east-1.amazonaws.com/ddp-training:0.1
+          imagePullPolicy: Always
 
           command: ["torchrun"]
 

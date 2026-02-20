@@ -46,6 +46,47 @@ Each pod updates identical model weights.
 
 
 -------
+```
+
+                    LOCAL MACHINE
+                (build & push image)
+                         │
+                         │ docker build
+                         │ docker push
+                         ▼
+                AMAZON ECR (container registry)
+          ddp-mnist:0.1 image stored and available
+                         │
+                         │ kubectl apply
+                         ▼
+                  AMAZON EKS CLUSTER
+              Managed Kubernetes control plane
+                         │
+         ┌───────────────┴────────────────┐
+         │                                │
+         ▼                                ▼
+   EC2 NODE #1                      EC2 NODE #2
+ (Kubernetes worker)              (Kubernetes worker)
+         │                                │
+         │                                │
+         ▼                                ▼
+   ddp-master pod                   ddp-worker pod
+      (rank 0)                        (rank 1)
+         │                                │
+         └─────────── network ───────────┘
+                    gradient sync
+               PyTorch DistributedDataParallel
+
+                         │
+                         ▼
+                  TRAINING COMPLETES
+                         │
+                         ▼
+             Model checkpoint saved
+            /outputs/mnist_cnn_ddp.pt
+
+```
+---------------------------------------------------
 ## Project Structure
 
 ```text
