@@ -1,14 +1,18 @@
-# Distributed PyTorch Training on Kubernetes (DDP) – MNIST Example
+# Distributed PyTorch Training on Kubernetes (DDP + torchrun)
 
-This project demonstrates how to train a PyTorch model inside Kubernetes using containerized workloads, with support for Distributed Data Parallel (DDP). It shows how machine learning training jobs can run as Kubernetes workloads using Docker images and scalable infrastructure.
+## Overview
 
-The goal of this project is to illustrate core ML platform engineering concepts:
+This project demonstrates real multi-node Distributed Data Parallel (DDP) training using:
 
-- Containerized ML training with Docker
-- Running training workloads inside Kubernetes Pods
-- Saving model checkpoints from containerized jobs
-- Preparing the architecture for Distributed Data Parallel training
-- Production-style training workflow similar to real ML platforms
+* PyTorch
+* torchrun
+* Kubernetes Jobs
+* Headless Service for rendezvous
+* Minikube (local cluster)
+
+Two separate Kubernetes pods run one process each, synchronize gradients using AllReduce, and train a CNN on MNIST.
+
+This simulates how distributed training works in production ML platforms.
 
 
 # Architecture Overview
@@ -65,125 +69,173 @@ requirements.txt
 .dockerignore
 README.md
 
+---
 
-# Training Workflow
+# Architecture
 
-Step 1 – Build Docker image
+```
+Kubernetes Cluster
+│
+├── Pod 1: ddp-master
+│     torchrun
+│     rank = 0
+│     trains model
+│
+├── Pod 2: ddp-worker
+      torchrun
+      rank = 1
+      trains model
+```
 
-docker build -t mnist-ddp:latest -f docker/Dockerfile .
+During every training batch:
 
-Or using minikube:
+```
+Pod 0 gradients ──┐
+                  ├── AllReduce ──> synchronized model
+Pod 1 gradients ──┘
+```
 
-minikube image build -t mnist-ddp:latest -f docker/Dockerfile .
+Both pods compute gradients independently.
+PyTorch performs an AllReduce operation to synchronize gradients across pods.
+Each pod updates identical model weights.
 
+---
 
-Step 2 – Run training inside Kubernetes
+# What Was Implemented
 
-Apply the Kubernetes training jobs:
+* Containerized PyTorch training script
+* Multi-pod distributed execution using torchrun
+* Static rendezvous configuration
+* Headless Kubernetes Service for DNS-based coordination
+* Gradient synchronization using DistributedDataParallel
+* Checkpoint saving after training
 
-kubectl apply -f k8s/ddp-master.yaml
-kubectl apply -f k8s/ddp-worker.yaml
-kubectl apply -f k8s/ddp-service.yaml
+---
 
+# Kubernetes Components
 
-Check pod status:
+## 1. Headless Service (for rendezvous)
 
+Allows pods to discover each other via DNS:
+
+```
+ddp-master-svc:29500
+```
+
+## 2. Master Job
+
+Runs:
+
+```
+torchrun \
+  --nnodes=2 \
+  --node_rank=0 \
+  --rdzv_backend=static \
+  --rdzv_endpoint=ddp-master-svc:29500 \
+  /app/src/train.py
+```
+
+## 3. Worker Job
+
+Runs:
+
+```
+torchrun \
+  --nnodes=2 \
+  --node_rank=1 \
+  --rdzv_backend=static \
+  --rdzv_endpoint=ddp-master-svc:29500 \
+  /app/src/train.py
+```
+
+---
+
+# How It Works Internally
+
+1. Each pod runs torchrun.
+2. torchrun assigns:
+
+   * RANK (0 or 1)
+   * WORLD_SIZE=2
+   * MASTER_ADDR
+3. `dist.init_process_group("gloo")` initializes distributed communication.
+4. Each pod trains independently on its data shard.
+5. After backward pass:
+
+   * PyTorch performs AllReduce.
+   * Gradients are averaged.
+6. Model weights remain synchronized across pods.
+
+---
+
+# Commands That Worked
+
+## Build Docker image directly inside Minikube
+
+```
+minikube image build -t ddp-mnist:0.1 -f docker/Dockerfile .
+```
+
+## Deploy all Kubernetes resources
+
+```
+kubectl apply -f k8s/
+```
+
+## Verify pods
+
+```
 kubectl get pods
+```
 
+## View logs
 
-Example output:
+```
+kubectl logs -f <pod-name>
+```
 
-NAME              READY   STATUS      RESTARTS   AGE
-ddp-master-xxx    1/1     Running     0          30s
-ddp-worker-xxx    1/1     Running     0          30s
+Example:
 
+```
+kubectl logs -f ddp-master-2b26w
+```
 
-View logs from master pod:
+## Delete and redeploy
 
-kubectl logs ddp-master-xxx
+```
+kubectl delete -f k8s/
+kubectl apply -f k8s/
+```
 
+---
 
-Example training output:
+# Example Output
 
+```
+TRAIN STARTED
+RANK: 0
+WORLD_SIZE: 2
 [INIT] world_size=2 backend=gloo
-[RANK 0] host=ddp-master
-[RANK 1] host=ddp-worker
-[EPOCH 1/2] loss=0.1677 samples/sec=856.0
-[EPOCH 2/2] loss=0.0469 samples/sec=1047.0
+
+[EPOCH 1/2] loss=0.3272 samples/sec=641.3
+[EPOCH 2/2] loss=0.0712 samples/sec=663.5
 [DONE] Saved checkpoint: /outputs/mnist_cnn_ddp.pt
+```
+
+This confirms:
+
+* Two ranks participated
+* Training executed successfully
+* Gradients synchronized
+* Checkpoint saved
+
+---
+
+# Key Takeaways
+
+* Demonstrates real distributed training across multiple Kubernetes pods
+* Uses production-style rendezvous and static backend
+* Shows gradient synchronization via AllReduce
+* Reproduces ML platform distributed training architecture
 
 
-Step 3 – Verify saved model
-
-kubectl exec <pod-name> -- ls -lh /outputs
-
-
-Example output:
-
-mnist_cnn_ddp.pt
-
-
-# Training Script Features
-
-The training script supports:
-
-- CPU training
-- Distributed Data Parallel (DDP)
-- Multiple ranks (master / worker)
-- Checkpoint saving
-- Automatic dataset download
-- Kubernetes-friendly execution
-
-Core DDP initialization:
-
-dist.init_process_group(
-    backend="gloo",
-    rank=rank,
-    world_size=world_size
-)
-
-
-# Technologies Used
-
-- Python
-- PyTorch
-- Distributed Data Parallel (DDP)
-- Docker
-- Kubernetes
-- Minikube
-- Containerized ML workloads
-
-# Example Kubernetes Training Job
-
-kubectl apply -f k8s/ddp-master.yaml
-
-Kubernetes schedules the training workload automatically as a batch job.
-
-
-# Example Training Result
-
-[EPOCH 1/2] loss=0.1677
-[EPOCH 2/2] loss=0.0469
-[DONE] Saved checkpoint: /outputs/mnist_cnn_ddp.pt
-
-
-# Future Improvements
-
-- Multi-node distributed training with multiple pods
-- GPU support
-- Persistent volume for checkpoint storage
-- Integration with MLflow for experiment tracking
-- Automated retraining pipelines
-- Kubernetes autoscaling
-
-
-# Key Learning Outcomes
-
-This project demonstrates:
-
-- Running PyTorch training inside Kubernetes
-- Building Docker images for ML workloads
-- Using Kubernetes Jobs for batch training
-- Preparing infrastructure for distributed training
-- Saving and managing model checkpoints
-- Understanding containerized ML workflows
