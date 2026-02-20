@@ -7,38 +7,25 @@ spec:
   template:
     metadata:
       labels:
-        app: ddp-master
+        app: ddp
+        role: master
     spec:
       restartPolicy: Never
       containers:
         - name: master
           image: ddp-mnist:0.1
           imagePullPolicy: Never
+
+          command: ["torchrun"]
+
+          args:
+            - "--nproc_per_node=1"
+            - "--nnodes=2"
+            - "--node_rank=0"
+            - "--rdzv_backend=c10d"
+            - "--rdzv_endpoint=ddp-master-svc:29500"
+            - "--rdzv_id=mnist-ddp"
+            - "/app/src/train.py"
+
           ports:
             - containerPort: 29500
-          env:
-            - name: EPOCHS
-              value: "2"
-            - name: BATCH_SIZE
-              value: "64"
-            - name: LR
-              value: "0.02"
-            - name: DDP_BACKEND
-              value: "gloo"
-            - name: OUT_DIR
-              value: "/outputs"
-          volumeMounts:
-            - name: outputs
-              mountPath: /outputs
-          args:
-            - torchrun
-            - --nproc_per_node=1
-            - --nnodes=2
-            - --node_rank=0
-            - --rdzv_backend=c10d
-            - --rdzv_endpoint=ddp-master-svc:29500
-            - --rdzv_id=mnistddp
-            - /app/src/train.py
-      volumes:
-        - name: outputs
-          emptyDir: {}

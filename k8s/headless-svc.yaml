@@ -4,9 +4,12 @@ metadata:
   name: ddp-master-svc
 spec:
   clusterIP: None
+
   selector:
-    app: ddp-master
+    app: ddp
+    role: master
+
   ports:
-    - name: rdzv
+    - name: rendezvous
       port: 29500
       targetPort: 29500
