@@ -3,7 +3,6 @@ kind: Job
 metadata:
   name: ddp-worker-1
 spec:
-  backoffLimit: 0
   template:
     metadata:
       labels:
@@ -22,17 +21,15 @@ spec:
             - "--nproc_per_node=1"
             - "--nnodes=2"
             - "--node_rank=1"
-            - "--rdzv_backend=c10d"
+
+            - "--rdzv_backend=static"
             - "--rdzv_endpoint=ddp-master-svc:29500"
-            - "--rdzv_id=mnist-ddp"
+
+            - "--master_addr=ddp-master-svc"
+            - "--master_port=29500"
+
             - "/app/src/train.py"
 
           env:
-            - name: MASTER_ADDR
-              value: "ddp-master-svc"
-            - name: MASTER_PORT
-              value: "29500"
-            - name: NCCL_SOCKET_IFNAME
-              value: "eth0"
             - name: GLOO_SOCKET_IFNAME
               value: "eth0"
