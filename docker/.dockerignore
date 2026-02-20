@@ -1,0 +1,81 @@
+# --------------------------------------
+# VCS
+# --------------------------------------
+.git
+.gitignore
+
+# --------------------------------------
+# OS / editor
+# --------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode
+.idea
+
+# --------------------------------------
+# Python caches / tests
+# --------------------------------------
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.mypy_cache
+.ruff_cache
+*.log
+
+# --------------------------------------
+# Virtual envs (never copy into image)
+# --------------------------------------
+.venv
+venv
+env
+ENV
+
+# --------------------------------------
+# Jupyter
+# --------------------------------------
+.ipynb_checkpoints
+
+# --------------------------------------
+# Data / outputs / artifacts (download at runtime or mount volume)
+# --------------------------------------
+data
+datasets
+mnist
+outputs
+output
+runs
+logs
+artifacts
+checkpoints
+models
+mlruns
+mlartifacts
+*.pt
+*.pth
+*.onnx
+*.pkl
+*.joblib
+
+# --------------------------------------
+# Secrets
+# --------------------------------------
+.env
+.env.*
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets
+credentials
+.aws
+
+# --------------------------------------
+# Docker / k8s local files
+# --------------------------------------
+docker-compose.yml
+**/*.tar
+**/*.tgz

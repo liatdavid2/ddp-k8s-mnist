@@ -1,0 +1,89 @@
+# --------------------------------------
+# OS / editor
+# --------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --------------------------------------
+# Python
+# --------------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+build/
+dist/
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual envs
+.venv/
+venv/
+env/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# --------------------------------------
+# Data / outputs / artifacts
+# --------------------------------------
+data/
+datasets/
+mnist/
+outputs/
+output/
+runs/
+logs/
+artifacts/
+checkpoints/
+models/
+*.pt
+*.pth
+*.onnx
+*.pkl
+*.joblib
+
+# TensorBoard
+events.out.tfevents.*
+
+# --------------------------------------
+# MLflow
+# --------------------------------------
+mlruns/
+mlartifacts/
+
+# --------------------------------------
+# Kubernetes / local cluster state
+# --------------------------------------
+*.log
+*.pid
+*.tmp
+
+# Helm / kustomize build outputs (if any)
+charts/*.tgz
+
+# --------------------------------------
+# Secrets
+# --------------------------------------
+.env
+.env.*
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets/
+credentials/
+.aws/

@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ddp-worker-1
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: ddp-worker
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: worker
+          image: ddp-mnist:0.1
+          imagePullPolicy: Never
+          env:
+            - name: EPOCHS
+              value: "2"
+            - name: BATCH_SIZE
+              value: "64"
+            - name: LR
+              value: "0.02"
+            - name: DDP_BACKEND
+              value: "gloo"
+          args:
+            - torchrun
+            - --nproc_per_node=1
+            - --nnodes=2
+            - --node_rank=1
+            - --rdzv_backend=c10d
+            - --rdzv_endpoint=ddp-master-svc:29500
+            - --rdzv_id=mnistddp
+            - /app/src/train.py
